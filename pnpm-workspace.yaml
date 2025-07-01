@@ -1,0 +1,8 @@
+packages:
+  - back
+  - front
+onlyBuiltDependencies:
+  - '@scarf/scarf'
+  - '@tailwindcss/oxide'
+  - bcrypt
+  - esbuild

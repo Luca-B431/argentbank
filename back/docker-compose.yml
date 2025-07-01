@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  # Backend Node.js Application
+  #  api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: argentbank-api
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3001
+  #     - DATABASE_URL=mongodb://mongo:27017/argentBankDB
+  #   depends_on:
+  #     - mongo
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - argentbank-network
+  #   restart: unless-stopped
+
+  # MongoDB Database
+  mongo:
+    image: mongo:7.0
+    container_name: argentbank-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=argentBankDB
+    volumes:
+      - mongo_data:/data/db
+      - ./scripts:/docker-entrypoint-initdb.d
+    networks:
+      - argentbank-network
+    restart: unless-stopped
+
+  # MongoDB Admin Interface (optional)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: argentbank-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin123
+    depends_on:
+      - mongo
+    networks:
+      - argentbank-network
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  argentbank-network:
+    driver: bridge
