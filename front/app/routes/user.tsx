@@ -17,6 +17,10 @@ export default function User() {
             <br />
             Tony Jarvis!
           </h1>
+          <a className="main-nav-item bg-amber-300" href="/">
+            <i className="fa fa-user-circle"></i>
+            Home
+          </a>
           <button className="edit-button">Edit Name</button>
         </div>
         <h2 className="sr-only">Accounts</h2>
