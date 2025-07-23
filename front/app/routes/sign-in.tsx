@@ -1,4 +1,8 @@
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/sign-in";
+import { useNavigate } from "react-router";
+import cookieStore from "../utils/cookies";
+import Header from "~/components/header";
+import Footer from "~/components/footer";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -8,6 +12,8 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function SignIn() {
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -19,6 +25,7 @@ export default function SignIn() {
     const password = values.password;
 
     try {
+      // POST API user/login
       const response = await fetch("http://localhost:3001/api/v1/user/login", {
         method: "POST",
         headers: {
@@ -28,6 +35,12 @@ export default function SignIn() {
         body: JSON.stringify({ email, password }),
       });
 
+      // On redirige vers la page user si le login est réussi
+      if (response.ok) {
+        navigate("/user");
+      }
+
+      // Si le login échoue, on affiche une erreur en console
       if (!response.ok) {
         throw new Error("Login échoué");
       }
@@ -35,8 +48,8 @@ export default function SignIn() {
       const data = await response.json();
       console.log("Login réussi :", data);
 
-      // Stocker le token dans un cookie (optionnel)
-      document.cookie = `userToken=${data.body.token}; path=/;`;
+      //On stocke le token dans un cookie
+      await cookieStore.set("userToken", data.body.token, { path: "/" });
     } catch (err) {
       console.error(err);
     }
@@ -44,6 +57,7 @@ export default function SignIn() {
 
   return (
     <>
+      <Header />
       <main className="main bg-dark">
         <section className="sign-in-content">
           <i className="fa fa-user-circle sign-in-icon"></i>
@@ -51,11 +65,21 @@ export default function SignIn() {
           <form onSubmit={handleSubmit}>
             <div className="input-wrapper">
               <label htmlFor="username">Username</label>
-              <input type="text" id="username" name="email" />
+              <input
+                type="text"
+                id="username"
+                name="email"
+                defaultValue="tony@stark.com"
+              />
             </div>
             <div className="input-wrapper">
               <label htmlFor="password">Password</label>
-              <input type="password" id="password" name="password" />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                defaultValue="password123"
+              />
             </div>
             <div className="input-remember">
               <input type="checkbox" id="remember-me" name="remember" />
@@ -67,9 +91,7 @@ export default function SignIn() {
           </form>
         </section>
       </main>
-      <footer className="footer">
-        <p className="footer-text">Copyright 2020 Argent Bank</p>
-      </footer>
+      <Footer />
     </>
   );
 }
