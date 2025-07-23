@@ -1,57 +1,14 @@
-import { useEffect, useState, useRef } from "react";
-import cookieStore from "../utils/cookies";
-import type { User } from "~/utils/user";
+import { useState } from "react";
 import Header from "~/components/header";
 import Footer from "~/components/footer";
+import useUser from "~/hooks/use-user";
 
 export default function UserPage() {
-  // 2. Typage explicite
-  const [userData, setUserData] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { status, user } = useUser();
+
   const [edit, setEdit] = useState(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userToken = await cookieStore.get("userToken");
-        console.log("User token:", userToken);
-
-        // On lance la requête POST avec le token pour récupérer les données utilisateur
-        const response = await fetch(
-          "http://localhost:3001/api/v1/user/profile",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${userToken?.value}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = (await response.json()) as {
-          status: 200;
-          message: "Successfully got user profile data";
-          body: User;
-        };
-        setUserData(data.body);
-        console.log("User data fetched successfully:", data.body);
-      } catch (error: any) {
-        console.error("Error fetching user data:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  if (loading) {
+  if (status === "loading") {
     return (
       <main className="main bg-dark">
         <div className="header pt-100 text-4xl font-bold">
@@ -61,11 +18,11 @@ export default function UserPage() {
     );
   }
 
-  if (error) {
+  if (status === "error") {
     return (
       <main className="main bg-dark">
         <div className="header mt-100 mx-24 py-8 text-4xl bg-red-500 font-bold">
-          <p>Error: {error}</p>
+          <p>Error</p>
         </div>
       </main>
     );
@@ -100,7 +57,7 @@ export default function UserPage() {
             <h1 className="text-2xl font-bold py-4">
               Welcome back{" "}
               {!edit ? (
-                userData?.firstName
+                user?.firstName
               ) : (
                 <input
                   type="text"
@@ -109,7 +66,7 @@ export default function UserPage() {
                 />
               )}{" "}
               {!edit ? (
-                userData?.lastName
+                user?.lastName
               ) : (
                 <input
                   type="text"
