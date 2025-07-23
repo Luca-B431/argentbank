@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import cookieStore from "../utils/cookies";
 import type { User } from "~/utils/user";
 import Header from "~/components/header";
@@ -10,7 +10,6 @@ export default function UserPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [edit, setEdit] = useState(false);
-  const [displaySaveButton, setDisplaySaveButton] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -78,48 +77,63 @@ export default function UserPage() {
 
       <main className="main bg-dark">
         <div className="header">
-          <h1 className="text-2xl font-bold py-4">
-            Welcome back{" "}
-            {edit ? (
-              <input
-                type="text"
-                onChange={() => {
-                  setDisplaySaveButton(true);
-                }}
-                onMouseLeave={() => {
-                  setDisplaySaveButton(false);
-                }}
-                className="bg-white w-48 text-black"
-              />
-            ) : (
-              userData?.firstName
-            )}{" "}
-            {edit ? (
-              <input
-                type="text"
-                name="firstNameEdit"
-                onChange={() => {
-                  setDisplaySaveButton(true);
-                }}
-                className="bg-white w-48 text-black"
-              />
-            ) : (
-              userData?.lastName
-            )}
-          </h1>
-          <button
-            className="edit-button font-bol cursor-pointer"
-            onClick={(e) => (edit ? setEdit(false) : setEdit(true))}
-          >
-            Edit Name
-          </button>
+          {/* Edit form */}
+          {/* // */}
+          <form
+            onReset={() => {
+              setEdit(false);
+            }}
+            onSubmit={(e) => {
+              e.preventDefault();
 
-          {/* ternaire d'affichage du save sur saisi d'input */}
-          {displaySaveButton ? (
-            <button className="save-button font-bol cursor-pointer ml-4">
-              Save
+              if (!edit) {
+                setEdit(true);
+
+                return;
+              }
+              const formData = new FormData(e.target as HTMLFormElement);
+
+              const name = formData.get("firstName");
+              const lastName = formData.get("lastName");
+            }}
+          >
+            <h1 className="text-2xl font-bold py-4">
+              Welcome back{" "}
+              {!edit ? (
+                userData?.firstName
+              ) : (
+                <input
+                  type="text"
+                  name="firstName"
+                  className="bg-white w-48 text-black"
+                />
+              )}{" "}
+              {!edit ? (
+                userData?.lastName
+              ) : (
+                <input
+                  type="text"
+                  name="lastName"
+                  className="bg-white w-48 text-black"
+                />
+              )}
+            </h1>
+            {edit && (
+              <button
+                type="reset"
+                className="edit-button font-bol cursor-pointer"
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              type="submit"
+              className="edit-button font-bol cursor-pointer ml-4"
+            >
+              {edit ? "Submit" : "Edit Name"}
             </button>
-          ) : null}
+          </form>
+          {/* // */}
         </div>
         <h2 className="sr-only">Accounts</h2>
 
