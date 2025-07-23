@@ -32,7 +32,7 @@ export default function Header() {
             <>
               <NavLink to={href("/user")} className="main-nav-item">
                 <i className="fa fa-user-circle"></i>
-                {user?.firstName} {user?.lastName}
+                {user.firstName} {user.lastName}
               </NavLink>
               <NavLink
                 className="main-nav-item"

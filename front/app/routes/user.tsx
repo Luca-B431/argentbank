@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Header from "~/components/header";
-import Footer from "~/components/footer";
 import useUser from "~/hooks/use-user";
+import cookieStore from "../utils/cookies";
+import type { User } from "~/utils/user";
 
 export default function UserPage() {
-  const { status, user } = useUser();
+  const { status, user, setUser } = useUser();
 
   const [edit, setEdit] = useState(false);
 
@@ -30,8 +30,6 @@ export default function UserPage() {
 
   return (
     <>
-      <Header />
-
       <main className="main bg-dark">
         <div className="header">
           {/* Edit form */}
@@ -40,7 +38,7 @@ export default function UserPage() {
             onReset={() => {
               setEdit(false);
             }}
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
 
               if (!edit) {
@@ -50,8 +48,36 @@ export default function UserPage() {
               }
               const formData = new FormData(e.target as HTMLFormElement);
 
-              const name = formData.get("firstName");
+              const firstName = formData.get("firstName");
               const lastName = formData.get("lastName");
+
+              const userToken = await cookieStore.get("userToken");
+
+              const response = await fetch(
+                "http://localhost:3001/api/v1/user/profile",
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${userToken?.value}`,
+                  },
+                  body: JSON.stringify({ firstName, lastName }),
+                }
+              );
+
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+
+              const data = (await response.json()) as {
+                status: 200;
+                message: "Successfully got user profile data";
+                body: User;
+              };
+              setUser({ data: data.body, status: "success" });
+              console.log("User data updated successfully:", data.body);
+              console.log(user?.firstName, user?.lastName);
+              setEdit(false);
             }}
           >
             <h1 className="text-2xl font-bold py-4">
@@ -62,6 +88,7 @@ export default function UserPage() {
                 <input
                   type="text"
                   name="firstName"
+                  defaultValue={user?.firstName}
                   className="bg-white w-48 text-black"
                 />
               )}{" "}
@@ -71,6 +98,7 @@ export default function UserPage() {
                 <input
                   type="text"
                   name="lastName"
+                  defaultValue={user?.lastName}
                   className="bg-white w-48 text-black"
                 />
               )}
@@ -127,8 +155,6 @@ export default function UserPage() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </>
   );
 }

@@ -1,8 +1,6 @@
 import type { Route } from "./+types/sign-in";
 import { useNavigate } from "react-router";
 import cookieStore from "../utils/cookies";
-import Header from "~/components/header";
-import Footer from "~/components/footer";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -57,7 +55,6 @@ export default function SignIn() {
 
   return (
     <>
-      <Header />
       <main className="main bg-dark">
         <section className="sign-in-content">
           <i className="fa fa-user-circle sign-in-icon"></i>
@@ -91,7 +88,6 @@ export default function SignIn() {
           </form>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

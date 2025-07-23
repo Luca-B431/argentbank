@@ -6,6 +6,7 @@ function useUser() {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState<
     "loading" | true | false
   >("loading");
+
   const [user, setUser] = useState<{
     data: User | null;
     status: "loading" | "success" | "error";
@@ -60,6 +61,7 @@ function useUser() {
     isUserLoggedIn,
     status: user.status,
     logout,
+    setUser,
   };
 }
 
