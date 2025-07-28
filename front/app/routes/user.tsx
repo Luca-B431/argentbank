@@ -1,32 +1,55 @@
-import { useState } from "react";
-import useUser from "~/hooks/use-user";
 import cookieStore from "../utils/cookies";
+import { store } from "../store/store";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser, setIsEditing } from "../store/store";
 import type { User } from "~/utils/user";
+import type { RootState, AppDispatch } from "~/store/store";
 
 export default function UserPage() {
-  const { status, user, setUser } = useUser();
+  const dispatch = useDispatch<AppDispatch>();
 
-  const [edit, setEdit] = useState(false);
+  const user = useSelector((state: RootState) => state.user.data);
+  const edit = useSelector((state: RootState) => state.user.isEditing);
 
-  if (status === "loading") {
-    return (
-      <main className="main bg-dark">
-        <div className="header pt-100 text-4xl font-bold">
-          <p>Loading...</p>
-        </div>
-      </main>
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!edit) {
+      dispatch(setIsEditing(true));
+      return;
+    }
+
+    const formData = new FormData(
+      document.querySelector("form") as HTMLFormElement
     );
-  }
 
-  if (status === "error") {
-    return (
-      <main className="main bg-dark">
-        <div className="header mt-100 mx-24 py-8 text-4xl bg-red-500 font-bold">
-          <p>Error</p>
-        </div>
-      </main>
-    );
-  }
+    const firstName = formData.get("firstName");
+    const lastName = formData.get("lastName");
+
+    const userToken = await cookieStore.get("userToken");
+
+    const response = await fetch("http://localhost:3001/api/v1/user/profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken?.value}`,
+      },
+      body: JSON.stringify({ firstName, lastName }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = (await response.json()) as {
+      status: 200;
+      message: "Successfully got user profile data";
+      body: User;
+    };
+    const userData = data.body;
+    dispatch(setUser(userData));
+    dispatch(setIsEditing(false));
+  };
 
   return (
     <>
@@ -36,49 +59,10 @@ export default function UserPage() {
           {/* // */}
           <form
             onReset={() => {
-              setEdit(false);
+              dispatch(setUser(user));
+              dispatch(setIsEditing(false));
             }}
-            onSubmit={async (e) => {
-              e.preventDefault();
-
-              if (!edit) {
-                setEdit(true);
-
-                return;
-              }
-              const formData = new FormData(e.target as HTMLFormElement);
-
-              const firstName = formData.get("firstName");
-              const lastName = formData.get("lastName");
-
-              const userToken = await cookieStore.get("userToken");
-
-              const response = await fetch(
-                "http://localhost:3001/api/v1/user/profile",
-                {
-                  method: "PUT",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${userToken?.value}`,
-                  },
-                  body: JSON.stringify({ firstName, lastName }),
-                }
-              );
-
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
-
-              const data = (await response.json()) as {
-                status: 200;
-                message: "Successfully got user profile data";
-                body: User;
-              };
-              setUser({ data: data.body, status: "success" });
-              console.log("User data updated successfully:", data.body);
-              console.log(user?.firstName, user?.lastName);
-              setEdit(false);
-            }}
+            onSubmit={handleSubmit}
           >
             <h1 className="text-2xl font-bold py-4">
               Welcome back{" "}
@@ -112,10 +96,10 @@ export default function UserPage() {
               </button>
             )}
             <button
-              type="submit"
               className="edit-button font-bol cursor-pointer ml-4"
+              type="submit"
             >
-              {edit ? "Submit" : "Edit Name"}
+              Edit Name
             </button>
           </form>
           {/* // */}

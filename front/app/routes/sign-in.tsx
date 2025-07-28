@@ -1,16 +1,22 @@
 import type { Route } from "./+types/sign-in";
+import { store } from "../store/store";
+import { setIsUserLoggedIn } from "../store/store";
 import { useNavigate } from "react-router";
 import cookieStore from "../utils/cookies";
 
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
+// export function meta({}: Route.MetaArgs) {
+//   return [
+//     { title: "New React Router App" },
+//     { name: "description", content: "Welcome to React Router!" },
+//   ];
+// }
 
 export default function SignIn() {
   const navigate = useNavigate();
+
+  const isUserLoggedIn = (value: boolean) => {
+    store.dispatch(setIsUserLoggedIn(value));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,6 +42,7 @@ export default function SignIn() {
       // On redirige vers la page user si le login est réussi
       if (response.ok) {
         navigate("/user");
+        isUserLoggedIn(true);
       }
 
       // Si le login échoue, on affiche une erreur en console

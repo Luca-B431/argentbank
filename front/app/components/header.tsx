@@ -1,11 +1,35 @@
 import { NavLink, href, useMatch } from "react-router";
-import useUser from "~/hooks/use-user";
+import type { RootState } from "~/store/store";
+import { store } from "~/store/store";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser, setIsUserLoggedIn } from "~/store/store";
+import cookieStore from "~/utils/cookies";
 
 export default function Header() {
-  const { isUserLoggedIn, user, logout } = useUser();
+  const duspatch = useDispatch();
 
   //   On check si on est sur la route Sign-in
   const isRouteSignIn = useMatch(href("/sign-in"));
+
+  const isUserLoggedIn = useSelector(
+    (state: RootState) => state.user.isUserLoggedIn
+  );
+  const user = useSelector((state: RootState) => state.user.data);
+
+  function logout() {
+    cookieStore.delete("userToken");
+    store.dispatch(setIsUserLoggedIn(false));
+    store.dispatch(
+      setUser({
+        firstName: "Tony",
+        lastName: "Stark",
+        email: "tony@stark.com",
+        id: "1",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+    );
+  }
 
   //   Affichage conditionnel du lien Sign-In
   const displaySignin = isUserLoggedIn === false && !isRouteSignIn;
@@ -28,7 +52,7 @@ export default function Header() {
               Sign In
             </NavLink>
           )}
-          {isUserLoggedIn === true && user && (
+          {isUserLoggedIn && user && (
             <>
               <NavLink to={href("/user")} className="main-nav-item">
                 <i className="fa fa-user-circle"></i>
