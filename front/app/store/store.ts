@@ -1,25 +1,68 @@
 import {
   configureStore,
+  createAsyncThunk,
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import type { User } from "~/utils/user";
+import cookieStore from "~/utils/cookies";
 
 // Je type le state général de l'application, obligatoire pour utiliser le hook useSelector
 export type RootState = ReturnType<typeof store.getState>;
 // Je type le dispatch de l'application, obligatoire pour utiliser le hook useDispatch
 export type AppDispatch = typeof store.dispatch;
 
+export const initializeStore = createAsyncThunk("user/initialize", async () => {
+  const userToken = await cookieStore.get("userToken");
+
+  if (userToken) {
+    const res = await fetch("http://localhost:3001/api/v1/user/profile", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${userToken.value}`,
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+    });
+    const data = await res.json();
+    return data.body as User;
+  }
+});
+
+export const fetchUser = createAsyncThunk("user/fetch", async ({}: {}) => {
+  const userToken = await cookieStore.get("userToken");
+
+  const res = await fetch("http://localhost:3001/api/v1/user/profile", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${userToken?.value}` },
+  });
+  const data = await res.json();
+  return data.body as User;
+});
+
+export const updateUser = createAsyncThunk(
+  "user/update",
+  async (userData: Pick<User, "firstName" | "lastName">) => {
+    const userToken = await cookieStore.get("userToken");
+
+    const res = await fetch("http://localhost:3001/api/v1/user/profile", {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${userToken?.value}`,
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+
+      body: JSON.stringify(userData),
+    });
+    const data = await res.json();
+    return data.body as User;
+  }
+);
+
 const initialState = {
-  data: {
-    firstName: "Tony",
-    lastName: "Stark",
-    email: "tony@stark.com",
-    id: "1",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  } as User,
-  status: "loading" as "loading" | "success" | "error",
+  data: null as User | null,
+  status: "idle" as "idle" | "loading" | "success" | "error",
   isUserLoggedIn: false,
   isEditing: false,
 };
@@ -44,6 +87,42 @@ const userSlice = createSlice({
     setIsEditing: (state, action: PayloadAction<boolean>) => {
       state.isEditing = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(fetchUser.pending, (state) => {
+      state.status = "loading";
+    });
+    builder.addCase(fetchUser.fulfilled, (state, action) => {
+      state.data = action.payload;
+      state.status = "success";
+    });
+    builder.addCase(fetchUser.rejected, (state) => {
+      state.status = "error";
+    });
+    builder.addCase(updateUser.pending, (state) => {
+      state.status = "loading";
+    });
+    builder.addCase(updateUser.fulfilled, (state, action) => {
+      state.data = action.payload;
+      state.status = "success";
+      state.isEditing = false;
+    });
+    builder.addCase(updateUser.rejected, (state) => {
+      state.status = "error";
+    });
+    builder.addCase(initializeStore.pending, (state) => {
+      state.status = "loading";
+    });
+    builder.addCase(initializeStore.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.data = action.payload;
+        state.isUserLoggedIn = true;
+      }
+      state.status = "success";
+    });
+    builder.addCase(initializeStore.rejected, (state) => {
+      state.status = "error";
+    });
   },
 });
 

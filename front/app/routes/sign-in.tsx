@@ -54,7 +54,10 @@ export default function SignIn() {
       console.log("Login réussi :", data);
 
       //On stocke le token dans un cookie
-      await cookieStore.set("userToken", data.body.token, { path: "/" });
+      await cookieStore.set("userToken", data.body.token, {
+        path: "/",
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      });
     } catch (err) {
       console.error(err);
     }

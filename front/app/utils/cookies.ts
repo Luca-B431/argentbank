@@ -1,6 +1,10 @@
 interface CookieStore {
   get(name: string): Promise<{ name: string; value: string } | undefined>;
-  set(name: string, value: string, options?: { path?: string }): Promise<void>;
+  set(
+    name: string,
+    value: string,
+    options?: { path?: string; expires?: Date }
+  ): Promise<void>;
   delete(name: string): Promise<void>;
   addEventListener(type: string, listener: (event: any) => void): void;
 }

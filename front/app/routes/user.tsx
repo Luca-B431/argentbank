@@ -1,15 +1,30 @@
-import cookieStore from "../utils/cookies";
-import { store } from "../store/store";
+import { updateUser } from "../store/store";
 import { useSelector, useDispatch } from "react-redux";
-import { setUser, setIsEditing } from "../store/store";
-import type { User } from "~/utils/user";
+import { setIsEditing } from "../store/store";
 import type { RootState, AppDispatch } from "~/store/store";
+import { useNavigate } from "react-router";
+import { useEffect } from "react";
+import Account from "~/components/account";
 
 export default function UserPage() {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+
+  const store = useSelector((state: RootState) => state);
+  console.log("store", store);
 
   const user = useSelector((state: RootState) => state.user.data);
   const edit = useSelector((state: RootState) => state.user.isEditing);
+  const status = useSelector((state: RootState) => state.user.status);
+  const isLoggedIn = useSelector(
+    (state: RootState) => state.user.isUserLoggedIn
+  );
+
+  useEffect(() => {
+    if (status === "success" && !isLoggedIn) {
+      navigate("/");
+    }
+  }, [status, isLoggedIn]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,33 +38,19 @@ export default function UserPage() {
       document.querySelector("form") as HTMLFormElement
     );
 
-    const firstName = formData.get("firstName");
-    const lastName = formData.get("lastName");
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
 
-    const userToken = await cookieStore.get("userToken");
-
-    const response = await fetch("http://localhost:3001/api/v1/user/profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userToken?.value}`,
-      },
-      body: JSON.stringify({ firstName, lastName }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = (await response.json()) as {
-      status: 200;
-      message: "Successfully got user profile data";
-      body: User;
-    };
-    const userData = data.body;
-    dispatch(setUser(userData));
-    dispatch(setIsEditing(false));
+    dispatch(updateUser({ firstName, lastName }));
   };
+
+  if (status === "loading") {
+    return <div> Loading ... </div>;
+  }
+
+  if (!isLoggedIn) {
+    return null;
+  }
 
   return (
     <>
@@ -59,7 +60,6 @@ export default function UserPage() {
           {/* // */}
           <form
             onReset={() => {
-              dispatch(setUser(user));
               dispatch(setIsEditing(false));
             }}
             onSubmit={handleSubmit}
@@ -106,38 +106,9 @@ export default function UserPage() {
         </div>
         <h2 className="sr-only">Accounts</h2>
 
-        <section className="account">
-          <div className="account-content-wrapper">
-            <h3 className="account-title">Argent Bank Checking (x8349)</h3>
-            <p className="account-amount">$2,082.79</p>
-            <p className="account-amount-description">Available Balance</p>
-          </div>
-          <div className="account-content-wrapper cta">
-            <button className="transaction-button">View transactions</button>
-          </div>
-        </section>
-
-        <section className="account">
-          <div className="account-content-wrapper">
-            <h3 className="account-title">Argent Bank Savings (x6712)</h3>
-            <p className="account-amount">$10,928.42</p>
-            <p className="account-amount-description">Available Balance</p>
-          </div>
-          <div className="account-content-wrapper cta">
-            <button className="transaction-button">View transactions</button>
-          </div>
-        </section>
-
-        <section className="account">
-          <div className="account-content-wrapper">
-            <h3 className="account-title">Argent Bank Credit Card (x8349)</h3>
-            <p className="account-amount">$184.30</p>
-            <p className="account-amount-description">Current Balance</p>
-          </div>
-          <div className="account-content-wrapper cta">
-            <button className="transaction-button">View transactions</button>
-          </div>
-        </section>
+        <Account title={"Argent Bank Checking (x8349)"} amount={"$2,082.79"} />
+        <Account title={"Argent Bank Savings (x6712)"} amount={"$10,928.42"} />
+        <Account title={"Argent Bank Credit Card (x8349)"} amount={"$184.30"} />
       </main>
     </>
   );
