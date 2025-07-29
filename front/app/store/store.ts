@@ -89,40 +89,43 @@ const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(fetchUser.pending, (state) => {
-      state.status = "loading";
-    });
-    builder.addCase(fetchUser.fulfilled, (state, action) => {
-      state.data = action.payload;
-      state.status = "success";
-    });
-    builder.addCase(fetchUser.rejected, (state) => {
-      state.status = "error";
-    });
-    builder.addCase(updateUser.pending, (state) => {
-      state.status = "loading";
-    });
-    builder.addCase(updateUser.fulfilled, (state, action) => {
-      state.data = action.payload;
-      state.status = "success";
-      state.isEditing = false;
-    });
-    builder.addCase(updateUser.rejected, (state) => {
-      state.status = "error";
-    });
-    builder.addCase(initializeStore.pending, (state) => {
-      state.status = "loading";
-    });
-    builder.addCase(initializeStore.fulfilled, (state, action) => {
-      if (action.payload) {
+    builder
+      .addCase(fetchUser.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchUser.fulfilled, (state, action) => {
         state.data = action.payload;
-        state.isUserLoggedIn = true;
-      }
-      state.status = "success";
-    });
-    builder.addCase(initializeStore.rejected, (state) => {
-      state.status = "error";
-    });
+        state.status = "success";
+      })
+      .addCase(fetchUser.rejected, (state) => {
+        state.status = "error";
+      });
+    builder
+      .addCase(updateUser.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.data = action.payload;
+        state.status = "success";
+        state.isEditing = false;
+      })
+      .addCase(updateUser.rejected, (state) => {
+        state.status = "error";
+      });
+    builder
+      .addCase(initializeStore.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(initializeStore.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.data = action.payload;
+          state.isUserLoggedIn = true;
+        }
+        state.status = "success";
+      })
+      .addCase(initializeStore.rejected, (state) => {
+        state.status = "error";
+      });
   },
 });
 
