@@ -70,6 +70,7 @@ paths:
           name: Authorization
           description: Attach Bearer JWT token
           required: true
+          type: string
       produces:
         - application/json
       responses:
@@ -93,6 +94,7 @@ paths:
           name: Authorization
           description: Attach Bearer JWT token
           required: true
+          type: string
         - in: body
           name: body
           description: Update user profile attributes
@@ -114,35 +116,32 @@ paths:
   # Mes routes
   /accounts:
     get:
-    security:
-      - Bearer: []
-    tags:
-      - Transactions
-    summary: Get transactions for a specific account
-    description: Returns all transactions for the given account ID
-    parameters:
-      - in: header
-        name: Authorization
-        description: Bearer JWT token
-        required: true
-        type: string
-      - in: path
-        name: id
-        description: ID of the account
-        required: true
-        type: string
-    produces:
-      - application/json
-    responses:
-      "200":
-        description: Transactions retrieved successfully
-        schema:
-          $ref: "#/definitions/Accounts"
-      "400":
-        description: Unauthorized - invalid or missing token
+      security:
+        - Bearer: []
+      tags:
+        - Transactions
+      summary: Get accounts of a specific user
+      description: Return all accounts of this user
+      parameters:
+        - in: header
+          name: Authorization
+          description: Bearer JWT token
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Accounts"
+        "400":
+          description: Unauthorized - invalid or missing token
 
-      "500":
-        description: Internal server error
+        "500":
+          description: Internal server error
   /acounts/{id}/transactions:
     get:
       security:
@@ -169,7 +168,8 @@ paths:
           description: Transactions retrieved successfully
           schema:
             type: array
-            $ref: "#/definitions/Transaction"
+            items:
+              $ref: "#/definitions/Transaction"
         "400":
           description: Invalid account ID
         "401":
