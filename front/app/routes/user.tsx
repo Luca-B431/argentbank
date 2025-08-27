@@ -10,9 +10,6 @@ export default function UserPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
-  const store = useSelector((state: RootState) => state);
-  console.log("store", store);
-
   const user = useSelector((state: RootState) => state.user.data);
   const edit = useSelector((state: RootState) => state.user.isEditing);
   const status = useSelector((state: RootState) => state.user.status);

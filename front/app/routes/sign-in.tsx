@@ -51,7 +51,6 @@ export default function SignIn() {
       }
 
       const data = await response.json();
-      console.log("Login réussi :", data);
 
       //On stocke le token dans un cookie
       await cookieStore.set("userToken", data.body.token, {
